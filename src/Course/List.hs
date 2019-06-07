@@ -210,7 +210,7 @@ flatMap f x = flatten $ map f x
 flattenAgain ::
   List (List a)
   -> List a
-flattenAgain = flatMap (\x -> x) 
+flattenAgain = flatMap (\x -> x)
 
 -- | Convert a list of optional values to an optional list of values.
 --
