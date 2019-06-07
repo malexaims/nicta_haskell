@@ -237,8 +237,7 @@ flattenAgain = flatMap (\x -> x)
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional =
-  error "todo: Course.List#seqOptional"
+seqOptional = error "todo: Course.List#seqOptional"
 
 -- | Find the first element in the list matching the predicate.
 --
