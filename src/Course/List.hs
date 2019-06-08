@@ -237,7 +237,10 @@ flattenAgain = flatMap (\x -> x)
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional = error "todo: Course.List#seqOptional"
+--twiceOptional uses mapOptional, which pattern matches Empty on the right side
+--In which case Empty is retured. Using this to fold right will return Empty
+--If any element in the List is the Empty optional
+seqOptional ls = foldRight (twiceOptional (:.)) (Full (Nil)) ls
 
 -- | Find the first element in the list matching the predicate.
 --
@@ -259,8 +262,11 @@ find ::
   (a -> Bool)
   -> List a
   -> Optional a
-find =
-  error "todo: Course.List#find"
+find f ls =
+  let check = filter f ls
+  in case check of
+    Nil -> Empty
+    (x :. _) -> Full x
 
 -- | Determine if the length of the given list is greater than 4.
 --
@@ -278,8 +284,9 @@ find =
 lengthGT4 ::
   List a
   -> Bool
-lengthGT4 =
-  error "todo: Course.List#lengthGT4"
+lengthGT4 ls
+  | length ls > 4 = True
+  | otherwise     = False
 
 -- | Reverse a list.
 --
@@ -295,8 +302,10 @@ lengthGT4 =
 reverse ::
   List a
   -> List a
-reverse =
-  error "todo: Course.List#reverse"
+reverse ls = rev ls Nil
+  where
+    rev Nil a = a
+    rev (x :. xs) a = rev xs (x :. a)
 
 -- | Produce an infinite `List` that seeds with the given value at its head,
 -- then runs the given function for subsequent elements
@@ -324,8 +333,9 @@ produce f x = x :. produce f (f x)
 notReverse ::
   List a
   -> List a
-notReverse =
-  error "todo: Is it even possible?"
+notReverse = reverse
+--After reading the solutions, I still don't understand this question
+--According to solutions this is impossible
 
 ---- End of list exercises
 
