@@ -167,7 +167,6 @@ filter f (x :. xs) = case (f x) of
   List a
   -> List a
   -> List a
-(++) _ Nil = Nil
 (++) f1 f2 = foldRight (:.) f2 f1
 
 infixr 5 ++

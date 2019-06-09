@@ -112,7 +112,7 @@ instance Monad ((->) t) where
 (<**>) m1 m2 = do
   x1 <- m1
   x2 <- m2
-  return (x1 x2)
+  pure $ x1 x2
 
 infixl 4 <**>
 
