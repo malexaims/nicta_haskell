@@ -75,8 +75,12 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f (State s) = State (\sf ->
+                                let (a, s') = s sf
+                                in  (f a, s')
+                            )
+
+
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -92,14 +96,16 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State (\s -> (a, s))
   (<*>) ::
     State s (a -> b)
     -> State s a
     -> State s b
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+  (<*>) (State s1) (State s2) = State (\sf ->
+                                          let (f, s1') = s1 sf
+                                              (a, s2') = s2 sf
+                                          in  (f a, s2')
+                                      )
 
 -- | Implement the `Monad` instance for `State s`.
 --
@@ -113,8 +119,11 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
+  (=<<) f (State s1) = State (\sf ->
+                                let (a, s1') = s1 sf
+                                    State s2 = f a
+                                in  s2 s1'
+                              )
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -135,8 +144,11 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo: Course.State#findM"
+findM _ Nil = pure Empty
+findM f (x :. xs) = check =<< f x
+                      where check z = if z
+                                      then pure (Full x)
+                                      else findM f xs
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
