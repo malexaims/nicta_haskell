@@ -13,6 +13,7 @@ import Course.Functor
 import Course.Applicative
 import Course.Monad
 import qualified Data.Set as S
+import qualified Data.Char as C
 
 -- $setup
 -- >>> import Test.QuickCheck.Function
@@ -161,14 +162,15 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat ls = eval (checkDup ls) S.empty
+firstRepeat ls = eval (findM rep ls) Nil
   where
-    checkDup :: (Ord a) => List a -> State (S.Set a) (Optional a)
-    checkDup Nil = pure Empty
-    checkDup (x :. xs) = get >>= (\set -> if x `S.member` set --Extract current State
-                                          then return (Full x)
-                                          --Must insert x back into set before checking rest of list
-                                          else put (x `S.insert` set) >> checkDup xs)
+    rep :: Ord a => a -> State (List a) Bool
+    rep a = State (\s -> if a `elem` s
+    -- findM will recurse through the entire list if the first index
+    -- (the @a@ value) of the tuple being returned is False
+    -- or will return if first element is True
+                         then (True, s)
+                         else (False, (a :. s)))
 
 
 -- | Remove all duplicate elements in a `List`.
@@ -212,7 +214,18 @@ distinct ls = reverse $ exec (findM rep ls) Nil
 -- >>> isHappy 44
 -- True
 isHappy ::
-  Integer
+  Int
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy n
+      | n == 1                            = True
+      | ((n > 4) && (isHappy $ happy n))  = True
+      | otherwise                         = False
+
+square :: Int -> Int
+square x = (x * x)
+
+happy :: Int -> Int
+happy = sum . map square . map C.digitToInt . listh . show
+
+happys :: Int -> List Int
+happys x = filter isHappy $ listh [1,2 .. x]
