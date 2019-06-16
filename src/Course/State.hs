@@ -183,8 +183,10 @@ distinct ::
   -> List a
 distinct ls = reverse $ exec (findM rep ls) Nil
     where
-      rep :: Ord a => a -> State (List a) String
+      rep :: Ord a => a -> State (List a) Bool
       rep a = State (\s -> if a `elem` s
+      -- findM will recurse through the entire list if the first index
+      -- (the @a@ value) of the tuple being returned is False
                            then (False, s)
                            else (False, (a :. s)))
 
