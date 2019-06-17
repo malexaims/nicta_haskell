@@ -104,7 +104,7 @@ instance Applicative (State s) where
     -> State s b
   (<*>) (State s1) (State s2) = State (\sf ->
                                           let (f, s1') = s1 sf
-                                              (a, s2') = s2 sf
+                                              (a, s2') = s2 s1'
                                           in  (f a, s2')
                                       )
 
