@@ -140,8 +140,9 @@ exec' ::
   State' s a
   -> s
   -> s
-exec' =
-  error "todo: Course.StateT#exec'"
+exec' st = snd . runState' st
+
+-- runState' (StateT st') s = runExactlyOne $ st' s
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting value.
 --
@@ -152,8 +153,7 @@ evalT ::
   StateT s f a
   -> s
   -> f a
-evalT =
-  error "todo: Course.StateT#evalT"
+evalT (StateT s1) s2 = fst <$> (s1 s2)
 
 -- | Run the `State'` seeded with `s` and retrieve the resulting value.
 --
@@ -163,8 +163,7 @@ eval' ::
   State' s a
   -> s
   -> a
-eval' =
-  error "todo: Course.StateT#eval'"
+eval' st = fst . runState' st
 
 -- | A `StateT` where the state also distributes into the produced value.
 --
@@ -173,8 +172,7 @@ eval' =
 getT ::
   Applicative f =>
   StateT s f s
-getT =
-  error "todo: Course.StateT#getT"
+getT = StateT (\s -> pure (s, s))
 
 -- | A `StateT` where the resulting state is seeded with the given value.
 --
@@ -187,8 +185,7 @@ putT ::
   Applicative f =>
   s
   -> StateT s f ()
-putT =
-  error "todo: Course.StateT#putT"
+putT s = StateT (\_ -> pure ((), s))
 
 -- | Remove all duplicate elements in a `List`.
 --
@@ -199,8 +196,15 @@ distinct' ::
   Ord a =>
   List a
   -> List a
-distinct' =
-  error "todo: Course.StateT#distinct'"
+distinct' ls = reverse $ exec (findM rep ls) Nil
+    where
+      rep :: Ord a => a -> State (List a) Bool
+      rep a = State (\s -> if a `elem` s
+      -- findM will recurse through the entire list if the first index
+      -- (the @a@ value) of the tuple being returned is False
+                           then (False, s)
+                           else (False, (a :. s)))
+
 
 -- | Remove all duplicate elements in a `List`.
 -- However, if you see a value greater than `100` in the list,
@@ -217,8 +221,11 @@ distinctF ::
   (Ord a, Num a) =>
   List a
   -> Optional (List a)
-distinctF =
-  error "todo: Course.StateT#distinctF"
+distinctF ls = seqOptional $ gt100 <$> distinct' ls
+                  where gt100 x
+                            | x > 100   = Empty
+                            | otherwise = Full x
+
 
 -- | An `OptionalT` is a functor of an `Optional` value.
 data OptionalT f a =
@@ -236,8 +243,7 @@ instance Functor f => Functor (OptionalT f) where
     (a -> b)
     -> OptionalT f a
     -> OptionalT f b
-  (<$>) =
-    error "todo: Course.StateT (<$>)#instance (OptionalT f)"
+  (<$>) fn (OptionalT f) = OptionalT (((<$>) fn) <$> f)
 
 -- | Implement the `Applicative` instance for `OptionalT f` given a Monad f.
 --
