@@ -16,6 +16,7 @@ import Course.Monad
 import Course.State
 import qualified Data.Set as S
 import qualified Prelude as P
+import Debug.Trace
 
 -- $setup
 -- >>> import Test.QuickCheck
@@ -280,8 +281,9 @@ instance Monad f => Applicative (OptionalT f) where
     OptionalT f (a -> b)
     -> OptionalT f a
     -> OptionalT f b
-  (<*>) (OptionalT f1) (OptionalT f2) = do
-    OptionalT (f1 >>= (\y -> (y <*>) <$> f2))
+  (<*>) (OptionalT f1) (OptionalT f2) = OptionalT (do
+                                                  x <- f1
+                                                  ((x <*>) <$> f2))
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --
@@ -292,8 +294,9 @@ instance Monad f => Monad (OptionalT f) where
     (a -> OptionalT f b)
     -> OptionalT f a
     -> OptionalT f b
-  (=<<) =
-    error "todo: Course.StateT (=<<)#instance (OptionalT f)"
+  (=<<) fn (OptionalT f) = OptionalT (f >>= (\x -> case x of
+                                                    Empty -> pure Empty
+                                                    Full a -> runOptionalT $ fn a))
 
 -- | A `Logger` is a pair of a list of log values (`[l]`) and an arbitrary value (`a`).
 data Logger l a =
