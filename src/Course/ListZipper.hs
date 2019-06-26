@@ -64,16 +64,18 @@ data MaybeListZipper a =
 -- >>> (+1) <$> (zipper [3,2,1] 4 [5,6,7])
 -- [4,3,2] >5< [6,7,8]
 instance Functor ListZipper where
-  (<$>) =
-    error "todo: Course.ListZipper (<$>)#instance ListZipper"
+  (<$>) f (ListZipper l c r) = ListZipper fl fc fr
+                                 where fl = f <$> l
+                                       fc = f c
+                                       fr = f <$> r
 
 -- | Implement the `Functor` instance for `MaybeListZipper`.
 --
 -- >>> (+1) <$> (IsZ (zipper [3,2,1] 4 [5,6,7]))
 -- [4,3,2] >5< [6,7,8]
 instance Functor MaybeListZipper where
-  (<$>) =
-    error "todo: Course.ListZipper (<$>)#instance MaybeListZipper"
+  (<$>) _ IsNotZ = IsNotZ
+  (<$>) f (IsZ lz) = IsZ (f <$> lz)
 
 -- | Convert the given zipper back to a list.
 --
@@ -88,8 +90,9 @@ instance Functor MaybeListZipper where
 toList ::
   ListZipper a
   -> List a
-toList =
-  error "todo: Course.ListZipper#toList"
+toList (ListZipper l c r) = flatten ((reverse l)
+                                    :. (c :. Nil)
+                                    :. r :. Nil)
 
 -- | Convert the given (maybe) zipper back to a list.
 toListZ ::
@@ -112,8 +115,8 @@ toListZ (IsZ z) =
 fromList ::
   List a
   -> MaybeListZipper a
-fromList =
-  error "todo: Course.ListZipper#fromList"
+fromList Nil     = IsNotZ
+fromList (x:.xs) = IsZ (ListZipper Nil x xs)
 
 -- | Retrieve the `ListZipper` from the `MaybeListZipper` if there is one.
 --
