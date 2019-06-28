@@ -288,8 +288,11 @@ findRight ::
   (a -> Bool)
   -> ListZipper a
   -> MaybeListZipper a
-findRight =
-  error "todo: Course.ListZipper#findRight"
+findRight f (ListZipper l c r) = case break f r of
+                (_, Nil)   -> IsNotZ
+                (a, b:.bs) -> IsZ $
+                              ListZipper (reverse a ++ c:.l) b bs
+
 
 -- | Move the zipper left, or if there are no elements to the left, go to the far right.
 --
@@ -301,8 +304,16 @@ findRight =
 moveLeftLoop ::
   ListZipper a
   -> ListZipper a
-moveLeftLoop =
-  error "todo: Course.ListZipper#moveLeftLoop"
+moveLeftLoop (ListZipper l c r)
+              | length l > 0 = ListZipper l' c' r'
+              | otherwise = ListZipper l'' c'' Nil
+              where l'  = drop 1 l
+                    c'  = head' $ reverse l
+                    r'  = (c:.Nil) ++ r
+                    l'' = (drop 1 $ reverse r) ++ (c:.Nil)
+                    c'' = head' $ reverse r
+                    head' (x:._) = x
+
 
 -- | Move the zipper right, or if there are no elements to the right, go to the far left.
 --
