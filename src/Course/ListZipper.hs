@@ -304,16 +304,19 @@ findRight f (ListZipper l c r) = case break f r of
 moveLeftLoop ::
   ListZipper a
   -> ListZipper a
-moveLeftLoop (ListZipper l c r)
-              | length l > 0 = ListZipper l' c' r'
-              | otherwise = ListZipper l'' c'' Nil
-              where l'  = drop 1 l
-                    c'  = head' $ reverse l
-                    r'  = (c:.Nil) ++ r
-                    l'' = (drop 1 $ reverse r) ++ (c:.Nil)
-                    c'' = head' $ reverse r
-                    head' (x:._) = x
-
+moveLeftLoop (ListZipper Nil c r) = ListZipper l' c' Nil
+  where (c':.l') = reverse (c:.r)
+moveLeftLoop (ListZipper (l:.ls) c r) = ListZipper ls l (c:.r)
+-- first attempt, which works but has a pattern match error
+-- moveLeftLoop (ListZipper l c r)
+--               | length l > 0 = ListZipper l' c' r'
+--               | otherwise = ListZipper l'' c'' Nil
+--               where l'  = drop 1 l
+--                     c'  = head' $ reverse l
+--                     r'  = (c:.Nil) ++ r
+--                     l'' = (drop 1 $ reverse r) ++ (c:.Nil)
+--                     c'' = head' $ reverse r
+--                     head' (x:._) = x
 
 -- | Move the zipper right, or if there are no elements to the right, go to the far left.
 --
@@ -325,8 +328,19 @@ moveLeftLoop (ListZipper l c r)
 moveRightLoop ::
   ListZipper a
   -> ListZipper a
-moveRightLoop =
-  error "todo: Course.ListZipper#moveRightLoop"
+moveRightLoop (ListZipper l c Nil) = ListZipper Nil c' r'
+  where (c':.r') = reverse (c:.l)
+moveRightLoop (ListZipper l c (r:.rs)) = ListZipper (c:.l) r rs
+-- first attempt, which works but has a pattern match error
+-- moveRightLoop (ListZipper l c r)
+--               | length r > 0 = ListZipper l' c' r'
+--               | otherwise = ListZipper Nil c'' r''
+--               where r'  = drop 1 r
+--                     c'  = head' $ r
+--                     l'  = (c:.Nil) ++ l
+--                     r'' = (drop 1 $ reverse l) ++ (c:.Nil)
+--                     c'' = head' $ reverse l
+--                     head' (x:._) = x
 
 -- | Move the zipper one position to the left.
 --
