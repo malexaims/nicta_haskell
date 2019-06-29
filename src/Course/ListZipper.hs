@@ -535,11 +535,22 @@ moveRightN' x lz = boostedMoveR x lz 0
 -- >>> nth 8 (zipper [3,2,1] 4 [5,6,7])
 -- ><
 nth ::
+  (Eq a) =>
   Int
   -> ListZipper a
   -> MaybeListZipper a
-nth =
-  error "todo: Course.ListZipper#nth"
+--Tried a solution, but got stuck with unhandled pattern match
+--this solution is inspired by solutions posted online
+nth x lz =
+   if x < 0
+    then IsNotZ
+   else case moveRightN' x lz of
+     --If right move goes beyond limits of r, wrap around
+     --and move left
+     Left y -> moveLeftN (y-x) lz
+     --If move can work, perform move using moveLeftN
+     --so a MaybeListZipper is returned
+     Right (ListZipper _ _ r) -> moveLeftN (length r) lz
 
 -- | Return the absolute position of the current focus in the zipper.
 --
@@ -550,8 +561,7 @@ nth =
 index ::
   ListZipper a
   -> Int
-index =
-  error "todo: Course.ListZipper#index"
+index (ListZipper l _ _) = length l 
 
 -- | Move the focus to the end of the zipper.
 --
