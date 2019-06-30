@@ -670,11 +670,10 @@ insertPushRight x (ListZipper l c r) =  ListZipper l x (r++(c:.Nil))
 -- [5,12] >8< [15,24,12]
 instance Applicative ListZipper where
 -- /Tip:/ Use @List#repeat@.
-  pure =
-    error "todo: Course.ListZipper pure#instance ListZipper"
+  pure c = ListZipper (repeat c) c (repeat c)
 -- /Tip:/ Use `zipWith`
-  (<*>) =
-    error "todo: Course.ListZipper (<*>)#instance ListZipper"
+  (<*>) (ListZipper l c r) (ListZipper l' c' r') =
+    ListZipper (zipWith id l l') (c c') (zipWith id r r')
 
 -- | Implement the `Applicative` instance for `MaybeListZipper`.
 --
@@ -697,10 +696,10 @@ instance Applicative ListZipper where
 -- >>> IsNotZ <*> IsNotZ
 -- ><
 instance Applicative MaybeListZipper where
-  pure =
-    error "todo: Course.ListZipper pure#instance MaybeListZipper"
-  (<*>) =
-    error "todo: Course.ListZipper (<*>)#instance MaybeListZipper"
+  pure a = IsZ $ ListZipper (repeat a) a (repeat a)
+  (<*>) IsNotZ _ = IsNotZ
+  (<*>) _ IsNotZ = IsNotZ
+  (<*>) (IsZ lz) (IsZ lz') = IsZ (lz <*> lz')
 
 -- | Implement the `Extend` instance for `ListZipper`.
 -- This implementation "visits" every possible zipper value derivable from a given zipper (i.e. all zippers to the left and right).
