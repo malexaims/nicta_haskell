@@ -609,8 +609,9 @@ start lz = case moveLeftN' 1 lz of
 deletePullLeft ::
   ListZipper a
   -> MaybeListZipper a
-deletePullLeft =
-  error "todo: Course.ListZipper#deletePullLeft"
+deletePullLeft lz = case moveLeft lz of
+                    IsZ (ListZipper l c r) -> IsZ $ ListZipper l c (drop 1 r)
+                    IsNotZ -> IsNotZ
 
 -- | Delete the current focus and pull the right values to take the empty position.
 --
@@ -622,8 +623,9 @@ deletePullLeft =
 deletePullRight ::
   ListZipper a
   -> MaybeListZipper a
-deletePullRight =
-  error "todo: Course.ListZipper#deletePullRight"
+deletePullRight lz = case moveRight lz of
+                    IsZ (ListZipper l c r) -> IsZ $ ListZipper (drop 1 l) c r
+                    IsNotZ -> IsNotZ
 
 -- | Insert at the current focus and push the left values to make way for the new position.
 --
@@ -638,8 +640,8 @@ insertPushLeft ::
   a
   -> ListZipper a
   -> ListZipper a
-insertPushLeft =
-  error "todo: Course.ListZipper#insertPushLeft"
+insertPushLeft x (ListZipper l c r) =  ListZipper (c:.l) x r
+
 
 -- | Insert at the current focus and push the right values to make way for the new position.
 --
@@ -654,8 +656,7 @@ insertPushRight ::
   a
   -> ListZipper a
   -> ListZipper a
-insertPushRight =
-  error "todo: Course.ListZipper#insertPushRight"
+insertPushRight x (ListZipper l c r) =  ListZipper l x (r++(c:.Nil))
 
 -- | Implement the `Applicative` instance for `ListZipper`.
 -- `pure` produces an infinite list zipper (to both left and right).
