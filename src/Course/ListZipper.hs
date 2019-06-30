@@ -561,7 +561,7 @@ nth x lz =
 index ::
   ListZipper a
   -> Int
-index (ListZipper l _ _) = length l 
+index (ListZipper l _ _) = length l
 
 -- | Move the focus to the end of the zipper.
 --
@@ -574,8 +574,15 @@ index (ListZipper l _ _) = length l
 end ::
   ListZipper a
   -> ListZipper a
-end =
-  error "todo: Course.ListZipper#end"
+end lz = case moveRightN' 1 lz of
+                Left _ -> lz
+                Right lz' -> end lz'
+
+--First attempt
+-- end (ListZipper (l:.ls) c (r:.rs)) = ListZipper l' c' Nil
+--   where l' = (c:.Nil) ++ (r:.Nil) ++ rs ++ (l:.ls)
+--         (c':.cs') = reverse rs
+--         rs' = reverse $ drop 1 rs
 
 -- | Move the focus to the start of the zipper.
 --
@@ -588,8 +595,9 @@ end =
 start ::
   ListZipper a
   -> ListZipper a
-start =
-  error "todo: Course.ListZipper#start"
+start lz = case moveLeftN' 1 lz of
+              Left _ -> lz
+              Right lz' -> start lz'
 
 -- | Delete the current focus and pull the left values to take the empty position.
 --
