@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Course.ListZipper where
 
@@ -709,8 +710,35 @@ instance Applicative MaybeListZipper where
 -- >>> id <<= (zipper [2,1] 3 [4,5])
 -- [[1] >2< [3,4,5],[] >1< [2,3,4,5]] >[2,1] >3< [4,5]< [[3,2,1] >4< [5],[4,3,2,1] >5< []]
 instance Extend ListZipper where
-  (<<=) =
-    error "todo: Course.ListZipper (<<=)#instance ListZipper"
+  -- (<<=) :: (ListZipper a -> b)
+  --          -> ListZipper a
+  --          -> ListZipper b
+  (<<=) f lz = ListZipper uWrapL (f lz) uWrapR
+                  where uWrapL = unfoldr ((<$>) (\lz' -> (f lz', lz')) . toOptional . moveLeft) lz
+                        uWrapR = unfoldr ((<$>) (\lz' -> (f lz', lz')) . toOptional . moveRight) lz
+
+  -- unfoldr ::
+  --   (a -> Optional (b, a))
+  --   -> a
+  --   -> List b
+
+  -- moveLeft ::
+  --   ListZipper a
+  --   -> MaybeListZipper a
+
+  -- unfoldr ::
+  --   (a -> Optional (b, a))
+  --   -> a
+  --   -> List b
+
+  -- toOptional ::
+  --   MaybeListZipper a
+  --   -> Optional (ListZipper a)
+
+  -- fromOptional ::
+  --   Optional (ListZipper a)
+  --   -> MaybeListZipper a
+
 
 -- | Implement the `Extend` instance for `MaybeListZipper`.
 -- This instance will use the `Extend` instance for `ListZipper`.
