@@ -207,7 +207,7 @@ instance Monad Parser where
     -> Parser a
     -> Parser b
   (=<<) f (P p1) = P (\s -> onResult (p1 s) --If first parser works run function on parse result a
-                            (\s' a -> parse (f a) s))
+                            (\s' a -> parse (f a) s'))
 
 -- | Write an Applicative functor instance for a @Parser@.
 -- /Tip:/ Use @(=<<)@.
@@ -215,14 +215,16 @@ instance Applicative Parser where
   pure ::
     a
     -> Parser a
-  pure =
-    valueParser
+  pure a = P (\s -> Result s a)
   (<*>) ::
     Parser (a -> b)
     -> Parser a
     -> Parser b
-  (<*>) =
-    error "todo: Course.Parser (<*>)#instance Parser"
+  (<*>) f p = do
+              f' <- f
+              p' <- p
+              pure (f' p')
+
 
 -- | Return a parser that produces a character but fails if
 --
@@ -240,8 +242,18 @@ instance Applicative Parser where
 satisfy ::
   (Char -> Bool)
   -> Parser Char
-satisfy =
-  error "todo: Course.Parser#satisfy"
+satisfy f = character >>= t <$> unexpectedCharParser <*> valueParser <*> f
+            where t a _ False = a
+                  t _ b True = b
+
+
+
+-- character ::
+--   Parser Char
+-- character =
+--   P (\s -> case s of
+--               Nil -> UnexpectedEof
+--               (c:.cs) -> Result cs c)
 
 -- | Return a parser that produces the given character but fails if
 --
