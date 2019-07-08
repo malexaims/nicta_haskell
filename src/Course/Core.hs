@@ -118,4 +118,3 @@ bool f _ False =
   f
 bool _ t True =
   t
-

@@ -206,7 +206,7 @@ instance Monad Parser where
     (a -> Parser b)
     -> Parser a
     -> Parser b
-  (=<<) f (P p1) = P (\s -> onResult (p1 s) --If first parser works run function on parse result a
+  (=<<) f (P p1) = P (\s -> onResult (p1 s)
                             (\s' a -> parse (f a) s'))
 
 -- | Write an Applicative functor instance for a @Parser@.
@@ -246,15 +246,6 @@ satisfy f = character >>= t <$> unexpectedCharParser <*> valueParser <*> f
             where t a _ False = a
                   t _ b True = b
 
-
-
--- character ::
---   Parser Char
--- character =
---   P (\s -> case s of
---               Nil -> UnexpectedEof
---               (c:.cs) -> Result cs c)
-
 -- | Return a parser that produces the given character but fails if
 --
 --   * The input is empty.
@@ -264,8 +255,8 @@ satisfy f = character >>= t <$> unexpectedCharParser <*> valueParser <*> f
 -- /Tip:/ Use the @satisfy@ function.
 is ::
   Char -> Parser Char
-is =
-  error "todo: Course.Parser#is"
+is c = satisfy $ (==) c
+
 
 -- | Return a parser that produces a character between '0' and '9' but fails if
 --
@@ -276,8 +267,7 @@ is =
 -- /Tip:/ Use the @satisfy@ and @Data.Char#isDigit@ functions.
 digit ::
   Parser Char
-digit =
-  error "todo: Course.Parser#digit"
+digit = satisfy isDigit
 
 --
 -- | Return a parser that produces a space character but fails if
@@ -289,8 +279,7 @@ digit =
 -- /Tip:/ Use the @satisfy@ and @Data.Char#isSpace@ functions.
 space ::
   Parser Char
-space =
-  error "todo: Course.Parser#space"
+space = satisfy $ (==) ' '
 
 -- | Return a parser that continues producing a list of values from the given parser.
 --
@@ -316,8 +305,8 @@ space =
 list ::
   Parser a
   -> Parser (List a)
-list =
-  error "todo: Course.Parser#list"
+list p = (|||) (list1 p) (valueParser Nil)
+--Results in recursive calls until list1 fails, then the list is completed by appending Nil
 
 -- | Return a parser that produces at least one value from the given parser then
 -- continues producing a list of values from the given parser (to ultimately produce a non-empty list).
@@ -335,8 +324,10 @@ list =
 list1 ::
   Parser a
   -> Parser (List a)
-list1 =
-  error "todo: Course.Parser#list1"
+list1 p = do
+            p' <- p
+            ps <- (list p)
+            pure (p' :. ps)
 
 -- | Return a parser that produces one or more space characters
 -- (consuming until the first non-space) but fails if
