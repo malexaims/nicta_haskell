@@ -437,8 +437,7 @@ ageParser =
 -- True
 firstNameParser ::
   Parser Chars
-firstNameParser =
-  error "todo: Course.Parser#firstNameParser"
+firstNameParser = (:.) <$> upper <*> list lower
 
 -- | Write a parser for Person.surname.
 --
@@ -459,8 +458,12 @@ firstNameParser =
 -- True
 surnameParser ::
   Parser Chars
-surnameParser =
-  error "todo: Course.Parser#surnameParser"
+surnameParser = do
+                x1 <- upper
+                x2 <- thisMany 5 lower
+                x3 <- list lower
+                valueParser (x1:.x2++x3)
+
 
 -- | Write a parser for Person.smoker.
 --
@@ -478,8 +481,13 @@ surnameParser =
 -- True
 smokerParser ::
   Parser Bool
-smokerParser =
-  error "todo: Course.Parser#smokerParser"
+smokerParser = do
+               x1 <- character
+               if x1 == 'y'
+                 then return True
+               else if x1 == 'n'
+                 then return False
+               else unexpectedCharParser x1
 
 -- | Write part of a parser for Person#phoneBody.
 -- This parser will only produce a string of digits, dots or hyphens.
