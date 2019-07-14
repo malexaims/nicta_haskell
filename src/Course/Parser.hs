@@ -508,8 +508,9 @@ smokerParser = do
 -- Result >a123-456< ""
 phoneBodyParser ::
   Parser Chars
-phoneBodyParser =
-  error "todo: Course.Parser#phoneBodyParser"
+phoneBodyParser = list (digit ||| dot ||| dash)
+                  where dot = is '.'
+                        dash = is '-'
 
 -- | Write a parser for Person.phone.
 --
