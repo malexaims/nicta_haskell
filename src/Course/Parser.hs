@@ -531,8 +531,13 @@ phoneBodyParser = list (digit ||| dot ||| dash)
 -- True
 phoneParser ::
   Parser Chars
-phoneParser =
-  error "todo: Course.Parser#phoneParser"
+phoneParser = do
+              x  <- digit
+              x1 <- phoneBodyParser
+              x2 <- character
+              if x2 == '#'
+                then valueParser (x:.x1)
+              else unexpectedCharParser x2
 
 -- | Write a parser for Person.
 --
@@ -589,8 +594,22 @@ phoneParser =
 -- Result >< Person 123 "Fred" "Clarkson" True "123-456.789"
 personParser ::
   Parser Person
-personParser =
-  error "todo: Course.Parser#personParser"
+personParser = do
+                 age <- ageParser
+                 spaces1
+                 fName <- firstNameParser
+                 spaces1
+                 lName <- surnameParser
+                 spaces1
+                 smoker <- smokerParser
+                 spaces1
+                 pNumber <- phoneParser
+                 valueParser (Person
+                                age
+                                fName
+                                lName
+                                smoker
+                                pNumber)
 
 -- Make sure all the tests pass!
 
