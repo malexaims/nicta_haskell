@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Course.Interactive where
 
@@ -82,8 +83,10 @@ data Op =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 convertInteractive ::
   IO ()
-convertInteractive =
-  error "todo: Course.Interactive#convertInteractive"
+convertInteractive = do
+                      putStr "Enter string: "
+                      s <- getLine
+                      putStrLn $ toUpper <$> s
 
 -- |
 --
@@ -110,8 +113,14 @@ convertInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 reverseInteractive ::
   IO ()
-reverseInteractive =
-  error "todo: Course.Interactive#reverseInteractive"
+reverseInteractive = do
+                      putStr "Enter a filename to reverse: "
+                      fp <- getLine
+                      putStr "Enter a filename to write to: "
+                      fp' <- getLine
+                      f <- readFile fp
+                      let f' = reverse f
+                      writeFile fp' f'
 
 -- |
 --
@@ -136,8 +145,21 @@ reverseInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 encodeInteractive ::
   IO ()
-encodeInteractive =
-  error "todo: Course.Interactive#encodeInteractive"
+encodeInteractive = do
+                      putStr "Enter a string to url-encode: "
+                      s <- getLine
+                      putStrLn $ table s
+                      putStrLn ""
+                      where
+                        table :: Chars -> Chars
+                        table s' = s' >>= \s ->
+                            case s of
+                                ' ' ->  "%20"
+                                '\t' -> "%09"
+                                '\"' -> "%22"
+                                _ -> (s :. Nil)
+
+
 
 interactive ::
   IO ()
