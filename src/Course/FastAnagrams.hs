@@ -6,6 +6,7 @@ module Course.FastAnagrams where
 import Course.Core
 import Course.List
 import Course.Functor
+import Course.Applicative
 import qualified Data.Set as S
 
 -- Return all anagrams of the given string
@@ -14,8 +15,8 @@ fastAnagrams ::
   Chars
   -> FilePath
   -> IO (List Chars)
-fastAnagrams =
-  error "todo: Course.FastAnagrams#fastAnagrams"
+fastAnagrams s fp = let s' = NoCaseString { ncString = s }
+                    in  (intersectBy (==) (permutations (ncString s'))) <$> lines <$> readFile fp
 
 newtype NoCaseString =
   NoCaseString {
