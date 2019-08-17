@@ -187,7 +187,7 @@ data Digit =
   | Seven
   | Eight
   | Nine
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 showDigit ::
   Digit
@@ -320,8 +320,21 @@ fromChar _ =
 --
 -- >>> dollars "456789123456789012345678901234567890123456789012345678901234567890.12"
 -- "four hundred and fifty-six vigintillion seven hundred and eighty-nine novemdecillion one hundred and twenty-three octodecillion four hundred and fifty-six septendecillion seven hundred and eighty-nine sexdecillion twelve quindecillion three hundred and forty-five quattuordecillion six hundred and seventy-eight tredecillion nine hundred and one duodecillion two hundred and thirty-four undecillion five hundred and sixty-seven decillion eight hundred and ninety nonillion one hundred and twenty-three octillion four hundred and fifty-six septillion seven hundred and eighty-nine sextillion twelve quintillion three hundred and forty-five quadrillion six hundred and seventy-eight trillion nine hundred and one billion two hundred and thirty-four million five hundred and sixty-seven thousand eight hundred and ninety dollars and twelve cents"
-dollars ::
-  Chars
-  -> Chars
-dollars =
-  error "todo: Course.Cheque#dollars"
+-- dollars ::
+--   Chars
+--   -> Chars
+-- dollars s = d ++ c
+--   where c = map (\x -> showDigit x =<< fromChar) $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
+--         d = fst $ splitCents s
+
+mapPair :: (a -> b) -> (a, a) -> (b, b)
+mapPair f = uncurry ((,) `on` f)
+
+splitCents :: Chars -> (Chars, Chars)
+splitCents s = mapPair (filter (not . isAlpha)) (break (== '.') s)
+
+cents :: Chars -> List (Optional Digit)
+cents s = map fromChar $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
+
+dollars :: Chars -> List (Optional Digit)
+dollars s = map fromChar $ fst $ splitCents s
