@@ -29,20 +29,6 @@ import Course.Monad
 -- $setup
 -- >>> :set -XOverloadedStrings
 
-wenty :: List Chars
-wenty = listh [
-        "twenty-",
-        "thirty-",
-        "fourty-",
-        "fifty-",
-        "sixty-",
-        "seventy-",
-        "eighty-",
-        "ninety-"
-        ]
-
-
-
 -- The representation of the grouping of each exponent of one thousand. ["thousand", "million", ...]
 illion ::
   List Chars
@@ -166,7 +152,8 @@ illion =
         , "nonagintanongentillion"
         ]
   in listh [
-       ""
+     ""
+     , "hundred"
      , "thousand"
      , "million"
      , "billion"
@@ -261,6 +248,38 @@ fromChar '9' =
 fromChar _ =
   Empty
 
+showBatch :: Digit3 -> Chars
+showBatch d = case d of
+              D1 a -> showDigit' a
+              D2 Zero b -> showDigit' b
+              D2 One b -> case b of
+                          Zero  -> "ten"
+                          One   -> "eleven"
+                          Two   -> "twelve"
+                          Three -> "thirteen"
+                          Four  -> "fourteen"
+                          Five  -> "fifteen"
+                          Six   -> "Sixteen"
+                          Seven -> "Seventeen"
+                          Eight -> "Eighteen"
+                          Nine  -> "Nineteen"
+              D2 Two b   -> "twenty" ~++~ b
+              D2 Three b -> "thirty" ~++~ b
+              D2 Four b  -> "fouty" ~++~ b
+              D2 Five b  -> "fifty" ~++~ b
+              D2 Six b   -> "sixty" ~++~ b
+              D2 Seven b -> "seventy" ~++~ b
+              D2 Eight b -> "eighty" ~++~ b
+              D2 Nine b -> "ninety" ~++~ b
+              D3 Zero Zero Zero -> ""
+              D3 Zero b c       -> showBatch (D2 b c)
+              D3 a Zero Zero    -> showDigit' a ++ "hundred"
+              D3 a b c          -> showDigit' a ++ "hundred and" ++ showBatch (D2 b c)
+        where (~++~) x y = x ++ case y of
+                                Zero -> Nil
+                                _    -> ('-' :. showDigit' y)
+              showDigit' x = toLower <$> showDigit x
+
 -- | Take a numeric value and produce its English output.
 --
 -- >>> dollars "0"
@@ -341,6 +360,10 @@ fromChar _ =
 --   where c = map (\x -> showDigit x =<< fromChar) $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
 --         d = fst $ splitCents s
 
+(!!) :: List a -> Int -> a
+(x:._) !! 0 = x
+(_:.xs) !! n = xs !! (n-1)
+
 mapPair :: (a -> b) -> (a, a) -> (b, b)
 mapPair f = uncurry ((,) `on` f)
 
@@ -348,16 +371,26 @@ splitCents :: Chars -> (Chars, Chars)
 splitCents s = mapPair (filter (not . isAlpha)) (break (== '.') s)
 
 getCents :: Chars -> List (Optional Digit)
-getCents s = map fromChar $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
+getCents s = map fromChar $ take 2 $ drop 1 $ snd $ splitCents s
 
 getDollars :: Chars -> List (Optional Digit)
 getDollars s = map fromChar $ fst $ splitCents s
 
 batch :: List (Optional Digit) -> List (Optional Digit3)
-batch Nil = Nil
-batch (d1:.Nil) = (lift1 D1 d1) :. Nil
-batch (d1:.d2:.Nil) = (lift2 D2 d1 d2) :. Nil
+batch Nil               = Nil
+batch (d1:.Nil)         = (lift1 D1 d1) :. Nil
+batch (d1:.d2:.Nil)     = (lift2 D2 d1 d2) :. Nil
 batch (d1:.d2:.d3:.Nil) = (lift3 D3 d1 d2 d3) :. Nil
-batch (d1:.d2:.d3:.ds) = (lift3 D3 d1 d2 d3) :. batch ds
+batch (d1:.d2:.d3:.ds)  = (lift3 D3 d1 d2 d3) :. batch ds
 
-doBatch = batch $ getDollars "100010.07"
+-- toText :: List (Optional Digit) -> List (Optional Chars) --NOTE: Likely wont need
+-- toText d = map (lift1 showDigit) d
+
+-- toNumText :: List (Optional Digit) -> List (Optional Chars)
+-- toNumText d = let l = length d
+--                   d' = batch d
+--               in toText d
+
+
+
+--Group, process first batch to conver Digit to text, then append illion, then recurse through the rest of the digits
