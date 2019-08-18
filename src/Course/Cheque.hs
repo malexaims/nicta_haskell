@@ -29,6 +29,20 @@ import Course.Monad
 -- $setup
 -- >>> :set -XOverloadedStrings
 
+wenty :: List Chars
+wenty = listh [
+        "twenty-",
+        "thirty-",
+        "fourty-",
+        "fifty-",
+        "sixty-",
+        "seventy-",
+        "eighty-",
+        "ninety-"
+        ]
+
+
+
 -- The representation of the grouping of each exponent of one thousand. ["thousand", "million", ...]
 illion ::
   List Chars
@@ -218,7 +232,7 @@ data Digit3 =
   D1 Digit
   | D2 Digit Digit
   | D3 Digit Digit Digit
-  deriving Eq
+  deriving (Eq, Show)
 
 -- Possibly convert a character to a digit.
 fromChar ::
@@ -333,8 +347,17 @@ mapPair f = uncurry ((,) `on` f)
 splitCents :: Chars -> (Chars, Chars)
 splitCents s = mapPair (filter (not . isAlpha)) (break (== '.') s)
 
-cents :: Chars -> List (Optional Digit)
-cents s = map fromChar $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
+getCents :: Chars -> List (Optional Digit)
+getCents s = map fromChar $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
 
-dollars :: Chars -> List (Optional Digit)
-dollars s = map fromChar $ fst $ splitCents s
+getDollars :: Chars -> List (Optional Digit)
+getDollars s = map fromChar $ fst $ splitCents s
+
+batch :: List (Optional Digit) -> List (Optional Digit3)
+batch Nil = Nil
+batch (d1:.Nil) = (lift1 D1 d1) :. Nil
+batch (d1:.d2:.Nil) = (lift2 D2 d1 d2) :. Nil
+batch (d1:.d2:.d3:.Nil) = (lift3 D3 d1 d2 d3) :. Nil
+batch (d1:.d2:.d3:.ds) = (lift3 D3 d1 d2 d3) :. batch ds
+
+doBatch = batch $ getDollars "100010.07"
