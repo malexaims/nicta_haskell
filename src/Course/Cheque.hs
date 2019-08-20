@@ -152,8 +152,7 @@ illion =
         , "nonagintanongentillion"
         ]
   in listh [
-     ""
-     , "hundred"
+       ""
      , "thousand"
      , "million"
      , "billion"
@@ -250,6 +249,7 @@ fromChar _ =
 
 showBatch :: Digit3 -> Chars
 showBatch d = case d of
+              -- D1 Zero -> ""
               D1 a -> showDigit' a
               D2 Zero b -> showDigit' b
               D2 One b -> case b of
@@ -274,7 +274,7 @@ showBatch d = case d of
               D3 Zero Zero Zero -> ""
               D3 Zero b c       -> showBatch (D2 b c)
               D3 a Zero Zero    -> showDigit' a ++ "hundred"
-              D3 a b c          -> showDigit' a ++ "hundred and" ++ showBatch (D2 b c)
+              D3 a b c          -> showDigit' a ++ "hundred and " ++ showBatch (D2 b c)
         where (~++~) x y = x ++ case y of
                                 Zero -> Nil
                                 _    -> ('-' :. showDigit' y)
@@ -370,27 +370,40 @@ mapPair f = uncurry ((,) `on` f)
 splitCents :: Chars -> (Chars, Chars)
 splitCents s = mapPair (filter (not . isAlpha)) (break (== '.') s)
 
-getCents :: Chars -> List (Optional Digit)
-getCents s = map fromChar $ take 2 $ drop 1 $ snd $ splitCents s
+getCents :: Chars -> List Digit
+getCents s = map fromChar' $ take 2 $ drop 1 $ snd $ splitCents s
+  where fromChar' d = case fromChar d of
+                      Empty -> error "Invalid cents conversion"
+                      Full s' -> s'
 
-getDollars :: Chars -> List (Optional Digit)
-getDollars s = map fromChar $ fst $ splitCents s
+getDollars :: Chars -> List Digit
+getDollars s = map fromChar' $ fst $ splitCents s
+  where fromChar' d = case fromChar d of
+                      Empty -> error "Invalid dollar conversion"
+                      Full s' -> s'
 
-batch :: List (Optional Digit) -> List (Optional Digit3)
-batch Nil               = Nil
-batch (d1:.Nil)         = (lift1 D1 d1) :. Nil
-batch (d1:.d2:.Nil)     = (lift2 D2 d1 d2) :. Nil
-batch (d1:.d2:.d3:.Nil) = (lift3 D3 d1 d2 d3) :. Nil
-batch (d1:.d2:.d3:.ds)  = (lift3 D3 d1 d2 d3) :. batch ds
+-- batch :: List Digit -> Digit3
+-- batch (d1:.Nil)         = D1 d1
+-- batch (d1:.d2:.Nil)     = D2 d1 d2
+-- batch (d1:.d2:.d3:.Nil) = D3 d1 d2 d3
+-- batch (d1:.d2:.d3:.ds)  = (lift3 D3 d1 d2 d3) :. batch ds
+
 
 -- toText :: List (Optional Digit) -> List (Optional Chars) --NOTE: Likely wont need
 -- toText d = map (lift1 showDigit) d
 
--- toNumText :: List (Optional Digit) -> List (Optional Chars)
--- toNumText d = let l = length d
---                   d' = batch d
---               in toText d
-
+toNumText :: Chars -> Chars
+toNumText d = unwords $ (toText Nil illion $ getDollars $ reverse d)
+  where space "" = ""
+        space x = ' ' :. x
+        toText p _ Nil = p
+        toText _ Nil _ = error "Invalid input"
+        toText p (_:.is) (Zero:.Zero:.Zero:.ds) = toText p is ds
+        toText p (i:.is) (d1:.d2:.d3:.ds) = toText ((showBatch (D3 d3 d2 d1) ++ space i) :. p) is ds
+        toText p (_:.is) (Zero:.Zero:.ds) = toText p is ds
+        toText p (i:._)  (d1:.d2:._) = (showBatch (D2 d2 d1) ++ space i) :. p
+        toText p (_:.is) (Zero:.d1) = toText p is d1
+        toText p (i:._) (d1:._) = (showBatch (D1 d1) ++ space i) :. p
 
 
 --Group, process first batch to conver Digit to text, then append illion, then recurse through the rest of the digits
