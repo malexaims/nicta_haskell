@@ -353,12 +353,6 @@ showBatch d = case d of
 --
 -- >>> dollars "456789123456789012345678901234567890123456789012345678901234567890.12"
 -- "four hundred and fifty-six vigintillion seven hundred and eighty-nine novemdecillion one hundred and twenty-three octodecillion four hundred and fifty-six septendecillion seven hundred and eighty-nine sexdecillion twelve quindecillion three hundred and forty-five quattuordecillion six hundred and seventy-eight tredecillion nine hundred and one duodecillion two hundred and thirty-four undecillion five hundred and sixty-seven decillion eight hundred and ninety nonillion one hundred and twenty-three octillion four hundred and fifty-six septillion seven hundred and eighty-nine sextillion twelve quintillion three hundred and forty-five quadrillion six hundred and seventy-eight trillion nine hundred and one billion two hundred and thirty-four million five hundred and sixty-seven thousand eight hundred and ninety dollars and twelve cents"
--- dollars ::
---   Chars
---   -> Chars
--- dollars s = d ++ c
---   where c = map (\x -> showDigit x =<< fromChar) $ dropWhile (== '0') $ drop 1 $ snd $ splitCents s
---         d = fst $ splitCents s
 
 (!!) :: List a -> Int -> a
 (x:._) !! 0 = x
@@ -382,18 +376,8 @@ getDollars s = map fromChar' $ fst $ splitCents s
                       Empty -> error "Invalid dollar conversion"
                       Full s' -> s'
 
--- batch :: List Digit -> Digit3
--- batch (d1:.Nil)         = D1 d1
--- batch (d1:.d2:.Nil)     = D2 d1 d2
--- batch (d1:.d2:.d3:.Nil) = D3 d1 d2 d3
--- batch (d1:.d2:.d3:.ds)  = (lift3 D3 d1 d2 d3) :. batch ds
-
-
--- toText :: List (Optional Digit) -> List (Optional Chars) --NOTE: Likely wont need
--- toText d = map (lift1 showDigit) d
-
 toNumText :: Chars -> Chars
-toNumText d = unwords $ (toText Nil illion $ getDollars $ reverse d)
+toNumText d = unwords $ (toText Nil illion $ reverse $ getDollars d) ++ (cents d)
   where space "" = ""
         space x = ' ' :. x
         toText p _ Nil = p
@@ -404,6 +388,7 @@ toNumText d = unwords $ (toText Nil illion $ getDollars $ reverse d)
         toText p (i:._)  (d1:.d2:._) = (showBatch (D2 d2 d1) ++ space i) :. p
         toText p (_:.is) (Zero:.d1) = toText p is d1
         toText p (i:._) (d1:._) = (showBatch (D1 d1) ++ space i) :. p
-
-
---Group, process first batch to conver Digit to text, then append illion, then recurse through the rest of the digits
+        cents s = let s' = (toText Nil illion $ reverse $ getCents s)
+                  in if s' == Nil
+                      then "dollars":.Nil
+                     else ("dollars and":.Nil)++s'++("cents":.Nil)
