@@ -34,7 +34,7 @@ Haskell-specific
 If you choose to use Haskell, also take advantage of its tooling:
 
 * Build with CABAL
-* Include a `.ghci` file for convenience when developing
+* Include a `.ghci` file for convenience when developing87
   * https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci-dot-files.html
 * API documented using Haddock
   * [http://www.haskell.org/haddock/doc/html/index.html](http://www.haskell.org/haddock/doc/html/index.html)
